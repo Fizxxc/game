@@ -3,60 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Pixel 2D</title>
+  <title>Game 3D: Bola Menggelinding</title>
   <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
     canvas {
       display: block;
-      margin: auto;
-      background-color: black;
     }
   </style>
 </head>
 <body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
   <script>
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    document.body.appendChild(canvas);
+    // Setup scene, camera, and renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-    // Set canvas size
-    canvas.width = 400;
-    canvas.height = 400;
+    // Create a ball
+    const geometry = new THREE.SphereGeometry(1, 32, 32);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const ball = new THREE.Mesh(geometry, material);
+    scene.add(ball);
 
-    // Player settings
-    const player = {
-      x: 200,
-      y: 200,
-      size: 10,
-      color: "lime",
-      speed: 5,
-    };
+    // Create a floor
+    const floorGeometry = new THREE.PlaneGeometry(20, 20);
+    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
 
-    // Draw the player
-    function drawPlayer() {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.size, player.size);
-    }
+    // Camera position
+    camera.position.z = 5;
+    camera.position.y = 5;
+    camera.lookAt(0, 0, 0);
 
-    // Handle movement
-    window.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowUp") player.y -= player.speed;
-      if (e.key === "ArrowDown") player.y += player.speed;
-      if (e.key === "ArrowLeft") player.x -= player.speed;
-      if (e.key === "ArrowRight") player.x += player.speed;
+    // Ball movement variables
+    const speed = 0.1;
+    const ballPosition = { x: 0, y: 1, z: 0 };
 
-      // Boundaries
-      player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
-      player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
+    // Handle keyboard input
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowUp") ballPosition.z -= speed;
+      if (event.key === "ArrowDown") ballPosition.z += speed;
+      if (event.key === "ArrowLeft") ballPosition.x -= speed;
+      if (event.key === "ArrowRight") ballPosition.x += speed;
     });
 
-    // Game loop
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPlayer();
-      requestAnimationFrame(gameLoop);
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Update ball position
+      ball.position.set(ballPosition.x, ballPosition.y, ballPosition.z);
+
+      // Render scene
+      renderer.render(scene, camera);
     }
 
-    gameLoop();
+    animate();
+
+    // Adjust canvas size on resize
+    window.addEventListener("resize", () => {
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+    });
   </script>
 </body>
 </html>
